@@ -1,3 +1,9 @@
+# Check if the shell is interactive, if not, don't do anything
+case $- in
+	*i*) ;;
+	*) return;;
+esac
+
 source "$HOME/.shell/utils.sh"
 
 # Wait for dependencies to be installed
@@ -30,9 +36,9 @@ fi
 # Suggest basic programs
 suggest_multiple_installed "nvim" "brew" "fd" "bat" "gpg" "tldr"
 
-###########
-#  Evals  #
-###########
+##################################################
+# Setup
+##################################################
 
 if suggest_installed "starship"; then
 	eval "$(starship init zsh)"
@@ -42,14 +48,25 @@ if suggest_installed "zoxide"; then
 	eval "$(zoxide init zsh)"
 fi
 
+# lesspipe?
+
+##################################################
+# SSH Agent
+##################################################
+
 # Start ssh-agent, supress output
 eval "$(ssh-agent | sed 's/^echo/#echo/')"
 
-###########
-#  Alias  #
-###########
+if is_darwin; then
+	# Load ssh keys into ssh-agent, supress output
+	ssh-add --apple-load-keychain -q
+fi
 
-alias cd="cdls"
+##################################################
+# Basic Aliases
+##################################################
+
+alias cd="zl"
 
 # ls with exa
 if suggest_installed "exa"; then
@@ -69,9 +86,9 @@ fi
 # fd as find
 # cat with bat
 
-###########
-# EDITOR  #
-###########
+##################################################
+# Editor
+##################################################
 
 if is_installed "nvim"; then
 	alias nano="nvim"
@@ -81,26 +98,31 @@ if is_installed "nvim"; then
 	export VISUAL="$EDITOR"
 fi
 
-###########
-#   ENV   #
-###########
+##################################################
+# Environment
+##################################################
 
 if is_darwin; then
 	export TOOLCHAINS=swift
 fi
 
+
+
 # Uncomment the following line if the terminal does not display the colors correctly
-# export TERM="xterm-256color"
+#export TERM="xterm-256color"
 
 export GPG_TTY=$(tty)
 
-export PF_INFO="ascii"
-export PF_ASCII="Catppuccin"
-
+##################################################
 # Path
+##################################################
+
 add_multiple_to_path "$HOME/.local/bin" "$HOME/.rd/bin"
 
+##################################################
 # Dotbare
+##################################################
+
 suggest_multiple_installed "bat" "tree" "delta"
 
 if [ -f "$HOME/.dotbare/dotbare.plugin.zsh" ]; then
@@ -115,7 +137,12 @@ if ! is_installed "dotbare"; then
 fi
 alias dot="dotbare"
 
-source "$HOME/.shell/plugins/autols.sh"
+##################################################
+# Banner
+##################################################
+
+export PF_INFO="ascii"
+export PF_ASCII="Catppuccin"
 
 if ! is_installed "pfetch-with-kitties"; then
 	# install from url
@@ -128,3 +155,5 @@ fi
 
 echo ""
 pfetch-with-kitties
+
+source "$HOME/.shell/plugins/autols.sh"

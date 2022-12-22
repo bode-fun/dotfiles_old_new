@@ -14,6 +14,13 @@ is_linux() {
     [ "$(uname -s)" = "Linux" ]
 }
 
+# Checks if the shell is connected via SSH
+# Takes:    void
+# Returns:  0 if true, 1 if false
+is_ssh() {
+    [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ] || [ -n "$SSH_CONNECTION" ]
+}
+
 # Adds a directory to the PATH if it exists and isn't already in the PATH.
 # Takes:    $1 - The directory to add to the PATH
 # Returns:  void

@@ -1,10 +1,10 @@
-#! /bin/sh
+#! /usr/bin/sh
 
-cdls() {
+zl() {
     if [ $# -eq 0 ]; then
-        cd 
+    z
     else
-        cd "$1"
+        z "$1"
         la
     fi
 }
