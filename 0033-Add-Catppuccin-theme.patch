@@ -1,0 +1,47 @@
+From 5be9918fb60e2a249bd66cefcc3be5778386f967 Mon Sep 17 00:00:00 2001
+From: Jan Fooken <git@bode.fun>
+Date: Thu, 22 Dec 2022 16:40:32 +0100
+Subject: [PATCH 33/33] =?UTF-8?q?=F0=9F=98=BC=E2=9C=8C=EF=B8=8F=20Add=20Ca?=
+ =?UTF-8?q?tppuccin=20theme?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ init.lua | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/init.lua b/init.lua
+index 636d86a..020a329 100644
+--- a/init.lua
++++ b/init.lua
+@@ -49,6 +49,7 @@ require('packer').startup(function(use)
+   use 'lewis6991/gitsigns.nvim'
+ 
+   use 'navarasu/onedark.nvim' -- Theme inspired by Atom
++  use { "catppuccin/nvim", as = "catppuccin" } -- Catppuccin theme
+   use 'nvim-lualine/lualine.nvim' -- Fancier statusline
+   use 'lukas-reineke/indent-blankline.nvim' -- Add indentation guides even on blank lines
+   use 'numToStr/Comment.nvim' -- "gc" to comment visual regions/lines
+@@ -120,7 +121,8 @@ vim.wo.signcolumn = 'yes'
+ 
+ -- Set colorscheme
+ vim.o.termguicolors = true
+-vim.cmd [[colorscheme onedark]]
++-- vim.cmd [[colorscheme onedark]]
++vim.cmd.colorscheme "catppuccin-macchiato"
+ 
+ -- Set completeopt to have a better completion experience
+ vim.o.completeopt = 'menuone,noselect'
+@@ -156,7 +158,7 @@ vim.api.nvim_create_autocmd('TextYankPost', {
+ require('lualine').setup {
+   options = {
+     icons_enabled = false,
+-    theme = 'onedark',
++    theme = 'catppuccin-maccchiato',
+     component_separators = '|',
+     section_separators = '',
+   },
+-- 
+2.37.1 (Apple Git-137.1)
+
