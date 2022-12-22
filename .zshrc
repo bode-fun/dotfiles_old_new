@@ -57,6 +57,8 @@ fi
 # Start ssh-agent, supress output
 eval "$(ssh-agent | sed 's/^echo/#echo/')"
 
+# SSH Add on darwin
+# https://superuser.com/a/1721414
 if is_darwin; then
 	# Load ssh keys into ssh-agent, supress output
 	ssh-add --apple-load-keychain -q
