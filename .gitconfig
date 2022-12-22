@@ -1,0 +1,22 @@
+# Basefile
+[http]
+	sslVerify = true
+[user]
+	name = Jan Fooken
+	email = git@bode.fun
+	signingkey = ~/.ssh/id_ed25519
+[commit]
+	gpgSign = true
+[gpg]
+	format = ssh
+[gpg "ssh"]
+	allowedSignersFile = ~/.ssh/allowed_signers
+[init]
+    defaultBranch = main
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+[includeIf "gitdir:~/Documents/GitLab/"]
+	path = ~/.gitlab.gitconfig

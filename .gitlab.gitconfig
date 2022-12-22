@@ -1,0 +1,10 @@
+[core]
+#       sshCommand = "ssh -i ~/.ssh/id_ed25519"
+        # unset signingkey because it is set by the base file
+        signingkey =
+[gpg]
+        format = x509
+[gpg "x509"]
+	program = gitsign
+[gitsign]
+	connectorID = https://github.com/login/oauth
