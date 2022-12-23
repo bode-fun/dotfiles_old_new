@@ -158,7 +158,7 @@ vim.api.nvim_create_autocmd('TextYankPost', {
 require('lualine').setup {
   options = {
     icons_enabled = false,
-    theme = 'catppuccin-maccchiato',
+    theme = 'catppuccin',
     component_separators = '|',
     section_separators = '',
   },
