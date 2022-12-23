@@ -1,7 +1,20 @@
+# .zshrc
+#   zshenv -> zprofile -> zshrc (current)
+#
+# | zshenv   : always
+# | zprofile : if login shell
+# | zshrc    : if interactive shell
+# | zlogin   : if login shell, after zshrc
+# | zlogout  : if login shell, after logout
+#
+# https://zsh.sourceforge.io/Doc/Release/Files.html#Files
+#
+
 # Check if the shell is interactive, if not, don't do anything
+# Not needed for zsh, but for other shells
 case $- in
-	*i*) ;;
-	*) return;;
+*i*) ;;
+*) return ;;
 esac
 
 source "$HOME/.shell/utils.sh"
@@ -10,27 +23,27 @@ source "$HOME/.shell/utils.sh"
 # This makes sure that the shell does not spawan multiple times
 # if the dependencies are not installed
 wait_for_dependencies_interactive() {
-	if ! ensure_installed "git" "fzf" "curl"; then
-		echo "Please install the above programs before continuing."
-		echo "Do you want to enter a POSIX shell to install them? [Y/n]"
-		read -r answer
-		if [ "$answer" != "n" ]; then
-			# spawn a posix shell and wait for it to exit
-			/bin/sh
-			# Check if the dependencies are installed
-			wait_for_dependencies
-		else
-			echo "Aborting..."
-			return 1
-		fi
-	fi
+    if ! ensure_installed "git" "fzf" "curl"; then
+        echo "Please install the above programs before continuing."
+        echo "Do you want to enter a POSIX shell to install them? [Y/n]"
+        read -r answer
+        if [ "$answer" != "n" ]; then
+            # spawn a posix shell and wait for it to exit
+            /bin/sh
+            # Check if the dependencies are installed
+            wait_for_dependencies
+        else
+            echo "Aborting..."
+            return 1
+        fi
+    fi
 }
 # wait_for_dependencies_interactive || return 1
 
 # wait for dependencies to be installed before continuing
-if ! ensure_installed "git" "fzf" "curl"; then
-	echo "Please install the above programs before continuing."
-	return 1
+if ! ensure_installed "git" "fzf" "curl" "awk"; then
+    echo "Please install the above programs before continuing."
+    return 1
 fi
 
 # Suggest basic programs
@@ -40,13 +53,23 @@ suggest_multiple_installed "nvim" "brew" "fd" "bat" "gpg" "tldr"
 # Setup
 ##################################################
 
+if is_darwin && is_installed "brew"; then
+    export ZPLUG_HOME=/opt/homebrew/opt/zplug
+    if [ -f "$ZPLUG_HOME/init.zsh" ]; then
+        source $ZPLUG_HOME/init.zsh
+    fi
+fi
+
 if suggest_installed "starship"; then
-	eval "$(starship init zsh)"
+    eval "$(starship init zsh)"
 fi
 
 if suggest_installed "zoxide"; then
-	eval "$(zoxide init zsh)"
+    eval "$(zoxide init zsh)"
 fi
+
+# Disable bell
+unsetopt BEEP
 
 # lesspipe?
 
@@ -60,8 +83,8 @@ eval "$(ssh-agent | sed 's/^echo/#echo/')"
 # SSH Add on darwin
 # https://superuser.com/a/1721414
 if is_darwin; then
-	# Load ssh keys into ssh-agent, supress output
-	ssh-add --apple-load-keychain -q
+    # Load ssh keys into ssh-agent, supress output
+    ssh-add --apple-load-keychain -q
 fi
 
 ##################################################
@@ -74,17 +97,17 @@ alias gitui="gitui -t macchiato.ron"
 
 # ls with exa
 if suggest_installed "exa"; then
-	alias ls="exa --icons"
-	alias la="ls -a"
-	alias ld="la -D"
-	alias lt="la -l -g --git"
-	alias ll="lt --no-time"
-	alias lld="lt -D"
+    alias ls="exa --icons"
+    alias la="ls -a"
+    alias ld="la -D"
+    alias lt="la -l -g --git"
+    alias ll="lt --no-time"
+    alias lld="lt -D"
 fi
 
 # grep with ripgrep
 if suggest_installed "rg" "ripgrep"; then
-	alias grep="rg"
+    alias grep="rg"
 fi
 
 # fd as find
@@ -95,11 +118,11 @@ fi
 ##################################################
 
 if is_installed "nvim"; then
-	alias nano="nvim"
-	alias vi="nvim"
-	alias vim="nvim"
-	export EDITOR="nvim"
-	export VISUAL="$EDITOR"
+    alias nano="nvim"
+    alias vi="nvim"
+    alias vim="nvim"
+    export EDITOR="nvim"
+    export VISUAL="$EDITOR"
 fi
 
 ##################################################
@@ -117,7 +140,7 @@ export FZF_DEFAULT_OPTS=" \
 ##################################################
 
 if is_darwin; then
-	export TOOLCHAINS=swift
+    export TOOLCHAINS=swift
 fi
 
 # Uncomment the following line if the terminal does not display the colors correctly
@@ -138,14 +161,14 @@ add_multiple_to_path "$HOME/.local/bin" "$HOME/.rd/bin"
 suggest_multiple_installed "bat" "tree" "delta"
 
 if [ -f "$HOME/.dotbare/dotbare.plugin.zsh" ]; then
-	source "$HOME/.dotbare/dotbare.plugin.zsh"
+    source "$HOME/.dotbare/dotbare.plugin.zsh"
 fi
 
 if ! is_installed "dotbare"; then
-	# Install via git, supress warnings
-	echo "Installing dotbare via git..."
-	git clone https://github.com/kazhala/dotbare.git "$HOME/.dotbare"
-	source "$HOME/.dotbare/dotbare.plugin.zsh"
+    # Install via git, supress warnings
+    echo "Installing dotbare via git..."
+    git clone https://github.com/kazhala/dotbare.git "$HOME/.dotbare"
+    source "$HOME/.dotbare/dotbare.plugin.zsh"
 fi
 alias dot="dotbare"
 
@@ -156,16 +179,43 @@ alias dot="dotbare"
 export PF_INFO="ascii"
 export PF_ASCII="Catppuccin"
 
-if ! is_installed "pfetch-with-kitties"; then
-	# install from url
-	echo "Installing pfetch with kitties..."
-	mkdir -p "$HOME/.local/bin"
-	add_to_path "$HOME/.local/bin"
-	curl https://raw.githubusercontent.com/andreasgrafen/pfetch-with-kitties/673522de7ddc69f8e24b06a7d6a5d15110bcaf75/pfetch -o "$HOME/.local/bin/pfetch-with-kitties"
-	chmod +x "$HOME/.local/bin/pfetch-with-kitties"
+if is_installed "pfetch"; then
+    echo ""
+    pfetch
 fi
-
-echo ""
-pfetch-with-kitties
+##################################################
+# Plugins
+##################################################
 
 source "$HOME/.shell/plugins/autols.sh"
+
+if is_installed "zplug"; then
+
+    # zsh-history-substring-search
+    zplug "zsh-users/zsh-history-substring-search"
+    zplug "zsh-users/zsh-autosuggestions"
+    zplug "zsh-users/zsh-completions"
+    zplug "zsh-users/zsh-syntax-highlighting", defer:2
+
+    zplug "lib/clipboard", from:oh-my-zsh
+    # TODO: port this :)
+    # zplug "lib/completion", from:oh-my-zsh
+    zplug "bode-fun/pfetch-with-kitties", use:pfetch, as:command
+
+    # Install plugins if there are plugins that have not been installed
+    if ! zplug check --verbose; then
+        printf "Install? [y/N]: "
+        if read -q; then
+            echo
+            zplug install
+        fi
+    fi
+
+    # Then, source plugins and add commands to $PATH
+    zplug load
+fi
+
+# load completions
+autoload -Uz compinit bashcompinit
+compinit
+bashcompinit
