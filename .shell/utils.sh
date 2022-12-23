@@ -103,3 +103,18 @@ suggest_multiple_installed() {
     done
     [ "$all_installed" -eq 0 ]
 }
+
+fix_ssh_permissions() {
+    if [ -d "$HOME/.ssh" ]; then
+        chmod 700 "$HOME/.ssh"
+        chmod 600 "$HOME/.ssh"/*
+        chmod 644 "$HOME/.ssh"/*.pub
+        if [ -f "$HOME/.ssh/authorized_keys" ]; then
+            chmod 644 "$HOME/.ssh/authorized_keys"
+        fi
+        if [ -f "$HOME/.ssh/allowed_signers" ]; then
+        chmod 644 "$HOME/.ssh/allowed_signers"
+        fi
+        
+    fi
+}

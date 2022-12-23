@@ -12,10 +12,10 @@
 
 # Check if the shell is interactive, if not, don't do anything
 # Not needed for zsh, but for other shells
-case $- in
-*i*) ;;
-*) return ;;
-esac
+# case $- in
+# *i*) ;;
+# *) return ;;
+# esac
 
 source "$HOME/.shell/utils.sh"
 
@@ -74,8 +74,10 @@ unsetopt BEEP
 # lesspipe?
 
 ##################################################
-# SSH Agent
+# SSH
 ##################################################
+
+fix_ssh_permissions
 
 # Start ssh-agent, supress output
 eval "$(ssh-agent | sed 's/^echo/#echo/')"
@@ -85,6 +87,22 @@ eval "$(ssh-agent | sed 's/^echo/#echo/')"
 if is_darwin; then
     # Load ssh keys into ssh-agent, supress output
     ssh-add --apple-load-keychain -q
+fi
+
+if ! ssh-add -l >/dev/null 2>&1; then
+    echo "SSH keys not loaded, loading..."
+    if is_darwin; then
+        ssh-add --apple-use-keychain
+        ssh-add --apple-load-keychain -q
+    else
+        ssh-add
+    fi
+
+fi
+
+# If TERM is kitty, use kitty's ssh
+if [ "$TERM" = "xterm-kitty" ]; then
+    alias ssh="kitty +kitten ssh"
 fi
 
 ##################################################
@@ -183,6 +201,7 @@ if is_installed "pfetch"; then
     echo ""
     pfetch
 fi
+
 ##################################################
 # Plugins
 ##################################################
@@ -213,6 +232,8 @@ if is_installed "zplug"; then
 
     # Then, source plugins and add commands to $PATH
     zplug load
+else
+    echo "Please install zplug to use plugins."
 fi
 
 # load completions
