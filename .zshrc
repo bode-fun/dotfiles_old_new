@@ -54,6 +54,7 @@ suggest_multiple_installed "nvim" "brew" "fd" "bat" "gpg" "tldr"
 ##################################################
 
 if is_darwin && is_installed "brew"; then
+    # TODO: Remove this when changing to another zsh plugin manager
     export ZPLUG_HOME=/opt/homebrew/opt/zplug
     if [ -f "$ZPLUG_HOME/init.zsh" ]; then
         source $ZPLUG_HOME/init.zsh
@@ -141,6 +142,10 @@ if is_installed "nvim"; then
     alias vim="nvim"
     export EDITOR="nvim"
     export VISUAL="$EDITOR"
+else
+    echo "nvim not installed, using vim"
+    export EDITOR="vim"
+    export VISUAL="$EDITOR"
 fi
 
 ##################################################
@@ -183,7 +188,6 @@ if [ -f "$HOME/.dotbare/dotbare.plugin.zsh" ]; then
 fi
 
 if ! is_installed "dotbare"; then
-    # Install via git, supress warnings
     echo "Installing dotbare via git..."
     git clone https://github.com/kazhala/dotbare.git "$HOME/.dotbare"
     source "$HOME/.dotbare/dotbare.plugin.zsh"
@@ -194,17 +198,26 @@ alias dot="dotbare"
 # Banner
 ##################################################
 
-export PF_INFO="ascii"
-export PF_ASCII="Catppuccin"
+if ! is_installed "pfetch-with-kitties"; then
+    echo "Installing pfetch-with-kitties..."
+    mkdir -p "$HOME/.local/bin"
+    add_to_path "$HOME/.local/bin"
+    curl -sL https://raw.githubusercontent.com/bode-fun/pfetch-with-kitties/main/pfetch > "$HOME/.local/bin/pfetch-with-kitties"
+    chmod +x "$HOME/.local/bin/pfetch-with-kitties"
+fi
 
-if is_installed "pfetch"; then
+if is_installed "pfetch-with-kitties"; then
     echo ""
-    pfetch
+    PF_INFO="ascii" PF_ASCII="Catppuccin" pfetch-with-kitties
 fi
 
 ##################################################
 # Plugins
 ##################################################
+
+# TODO: Move to another manager. Zplug seems to be unmaintained
+# Cool and in zsh:  https://getantidote.github.io/
+# Rust????:         https://sheldon.cli.rs/
 
 source "$HOME/.shell/plugins/autols.sh"
 
@@ -217,9 +230,9 @@ if is_installed "zplug"; then
     zplug "zsh-users/zsh-syntax-highlighting", defer:2
 
     zplug "lib/clipboard", from:oh-my-zsh
-    # TODO: port this :)
-    # zplug "lib/completion", from:oh-my-zsh
-    zplug "bode-fun/pfetch-with-kitties", use:pfetch, as:command
+    # TODO: port this, because it calls bashcompinit :)
+    zplug "lib/completion", from:oh-my-zsh, defer:2 # This calls bashcompinit
+    zplug "bode-fun/pfetch-with-kitties", use:pfetch, as:command, rename-to:pfetch-with-kitties
 
     # Install plugins if there are plugins that have not been installed
     if ! zplug check --verbose; then
@@ -237,6 +250,6 @@ else
 fi
 
 # load completions
-autoload -Uz compinit bashcompinit
+autoload -Uz compinit # bashcompinit
 compinit
-bashcompinit
+# bashcompinit
