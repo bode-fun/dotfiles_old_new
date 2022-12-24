@@ -8,7 +8,7 @@
 # | zlogout  : if login shell, after logout
 #
 # https://zsh.sourceforge.io/Doc/Release/Files.html#Files
-#
+# have taken this from somewhere, but I don't remember where
 
 # Check if the shell is interactive, if not, don't do anything
 # Not needed for zsh, but for other shells
@@ -43,7 +43,7 @@ wait_for_dependencies_interactive() {
 # wait for dependencies to be installed before continuing
 if ! ensure_installed "git" "fzf" "curl" "awk"; then
     echo "Please install the above programs before continuing."
-    return 1
+    return 1 #this will still spawn a zsh shell without the config
 fi
 
 # Suggest basic programs
@@ -215,13 +215,23 @@ fi
 # Plugins
 ##################################################
 
-# TODO: Move to another manager. Zplug seems to be unmaintained
-# Cool and in zsh:  https://getantidote.github.io/
+# TODO: Move to another manager. Zplug seems to be abandoned. (https://github.com/mattmc3/zsh_unplugged)
+# Cool and in zsh:  https://getantidote.github.io/ # Mad respect to the author, I take inspiration from his dotfiles
 # Rust????:         https://sheldon.cli.rs/
+
+# Take inspiration from:
+#
+# https://github.com/mattmc3/dotfiles
+# https://github.com/mattmc3/zdotdir
+# https://github.com/mattmc3/zephyr (zsh config, maybe use it?)
+# https://github.com/mattmc3/zebrafish (zsh config, suuuuper barebones and simple)
+# https://github.com/tjdevries/config_manager (dotfiles from tjdevries, core maintainer of neovim)
+# https://github.com/ThePrimeagen/.dotfiles (dotfiles from ThePrimeagen... cool dude, I guess)
+
 
 source "$HOME/.shell/plugins/autols.sh"
 
-if is_installed "zplug"; then
+if is_installed "zplug"; then # damn zplug, the author didn't even archive the repo or put out a deprecation notice
 
     # zsh-history-substring-search
     zplug "zsh-users/zsh-history-substring-search"
@@ -251,5 +261,5 @@ fi
 
 # load completions
 autoload -Uz compinit # bashcompinit
-compinit
-# bashcompinit
+compinit # defering with 2 in zplug means that these plugins are loaded after compinit
+# bashcompinit # already called by oh-my-zsh, defered by zplug
