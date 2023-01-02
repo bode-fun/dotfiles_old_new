@@ -57,6 +57,7 @@ if is_darwin && is_installed "brew"; then
     # TODO: Remove this when changing to another zsh plugin manager
     export ZPLUG_HOME=/opt/homebrew/opt/zplug
     if [ -f "$ZPLUG_HOME/init.zsh" ]; then
+        # source /opt/homebrew/opt/antidote/share/antidote/antidote.zsh
         source $ZPLUG_HOME/init.zsh
     fi
 fi
@@ -71,6 +72,9 @@ fi
 
 # Disable bell
 unsetopt BEEP
+
+# Vim keybindings as god intended
+bindkey -v
 
 # lesspipe?
 
@@ -93,7 +97,9 @@ fi
 if ! ssh-add -l >/dev/null 2>&1; then
     echo "SSH keys not loaded, loading..."
     if is_darwin; then
+        # Add keys
         ssh-add --apple-use-keychain
+        # Refresh keychain
         ssh-add --apple-load-keychain -q
     else
         ssh-add
@@ -125,12 +131,7 @@ if suggest_installed "exa"; then
 fi
 
 # grep with ripgrep
-if suggest_installed "rg" "ripgrep"; then
-    alias grep="rg"
-fi
-
-# fd as find
-# cat with bat
+suggest_installed "rg" "ripgrep"
 
 ##################################################
 # Editor
@@ -202,7 +203,8 @@ if ! is_installed "pfetch-with-kitties"; then
     echo "Installing pfetch-with-kitties..."
     mkdir -p "$HOME/.local/bin"
     add_to_path "$HOME/.local/bin"
-    curl -sL https://raw.githubusercontent.com/bode-fun/pfetch-with-kitties/main/pfetch > "$HOME/.local/bin/pfetch-with-kitties"
+    # I use my own fork, becaus I audited it
+    curl -sL https://raw.githubusercontent.com/bode-fun/pfetch-with-kitties/main/pfetch >"$HOME/.local/bin/pfetch-with-kitties"
     chmod +x "$HOME/.local/bin/pfetch-with-kitties"
 fi
 
@@ -210,6 +212,47 @@ if is_installed "pfetch-with-kitties"; then
     echo ""
     PF_INFO="ascii" PF_ASCII="Catppuccin" pfetch-with-kitties
 fi
+
+##################################################
+# Plugin conf
+##################################################
+
+#####################################
+# Taken from
+# https://github.com/mattmc3/zephyr
+#####################################
+
+# zsh-autosuggestions
+
+#
+# Variables
+#
+
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=8'
+
+#
+# Keybinds
+#
+
+if [[ -n "$key_info" ]]; then
+    # vi
+    bindkey -M viins "$key_info[Control]F" vi-forward-word
+    bindkey -M viins "$key_info[Control]E" vi-add-eol
+fi
+
+# zsh-completions
+
+# zsh-syntax-highlighting
+
+# zsh-substring-search
+
+# vi
+bindkey -M vicmd "k" history-substring-search-up
+bindkey -M vicmd "j" history-substring-search-down
+
+# up/down
+bindkey "$terminfo[kcuu1]" history-substring-search-up
+bindkey "$terminfo[kcud1]" history-substring-search-down
 
 ##################################################
 # Plugins
@@ -228,20 +271,19 @@ fi
 # https://github.com/tjdevries/config_manager (dotfiles from tjdevries, core maintainer of neovim)
 # https://github.com/ThePrimeagen/.dotfiles (dotfiles from ThePrimeagen... cool dude, I guess)
 
-
 source "$HOME/.shell/plugins/autols.sh"
 
 if is_installed "zplug"; then # damn zplug, the author didn't even archive the repo or put out a deprecation notice
 
-    # zsh-history-substring-search
     zplug "zsh-users/zsh-history-substring-search"
     zplug "zsh-users/zsh-autosuggestions"
     zplug "zsh-users/zsh-completions"
     zplug "zsh-users/zsh-syntax-highlighting", defer:2
 
-    zplug "lib/clipboard", from:oh-my-zsh
+    #zplug "lib/clipboard", from:oh-my-zsh
     # TODO: port this, because it calls bashcompinit :)
-    zplug "lib/completion", from:oh-my-zsh, defer:2 # This calls bashcompinit
+    #zplug "lib/completion", from:oh-my-zsh, defer:2 # This calls bashcompinit
+    zplug "mattmc3/zephyr"
     zplug "bode-fun/pfetch-with-kitties", use:pfetch, as:command, rename-to:pfetch-with-kitties
 
     # Install plugins if there are plugins that have not been installed
@@ -260,6 +302,6 @@ else
 fi
 
 # load completions
-autoload -Uz compinit # bashcompinit
-compinit # defering with 2 in zplug means that these plugins are loaded after compinit
-# bashcompinit # already called by oh-my-zsh, defered by zplug
+autoload -Uz compinit bashcompinit
+compinit     # defering with 2 in zplug means that these plugins are loaded after compinit
+bashcompinit # already called by oh-my-zsh, defered by zplug
