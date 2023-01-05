@@ -48,7 +48,7 @@ wait_for_dependencies_interactive() {
     fi
 
     if is_wsl; then
-        if (! ensure_installed "wslpath"); then # || (! suggest_installed "wslvar" "wslu")
+        if (! ensure_installed "wslpath" "keychain"); then # || (! suggest_installed "wslvar" "wslu")
             start_shell=0
         fi
     fi
@@ -98,19 +98,22 @@ bindkey -v
 fix_ssh_permissions
 
 # Start ssh-agent, supress output
-eval "$(ssh-agent | sed 's/^echo/#echo/')"
+eval "$(ssh-agent -s  | sed 's/^echo/#echo/')"
+
 
 # SSH Add on darwin
 # https://superuser.com/a/1721414
 if is_darwin; then
     # Load ssh keys into ssh-agent, supress output
     ssh-add --apple-load-keychain -q
+elif is_wsl; then
+    eval "$(keychain --quiet --eval --agents ssh)"
 fi
 
 if ! ssh-add -l >/dev/null 2>&1; then
     public_key_count="$(\find $HOME/.ssh/ -type f \( -name "*.pub" \) | wc -l)"
     if [ "$public_key_count" -gt 0 ]; then
-        echo "SSH keys not loaded, loading..."
+        echo "SSH keys not added, adding..."
 
         if is_darwin; then
             # Add keys
@@ -118,8 +121,7 @@ if ! ssh-add -l >/dev/null 2>&1; then
             # Refresh keychain
             ssh-add --apple-load-keychain -q
         else
-            # TODO: Test this on linux
-            ssh-add
+            echo "Please run `ssh-add` to add your ssh keys"
         fi
     fi
 fi
