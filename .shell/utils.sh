@@ -14,6 +14,13 @@ is_linux() {
     [ "$(uname -s)" = "Linux" ]
 }
 
+# Checks if the host platform is WSL
+# Takes:    void
+# Returns:  0 if true, 1 if false
+is_wsl() {
+    is_linux && [ -n "$WSL_DISTRO_NAME" ]
+}
+
 # Checks if the shell is connected via SSH
 # Takes:    void
 # Returns:  0 if true, 1 if false
@@ -104,17 +111,37 @@ suggest_multiple_installed() {
     [ "$all_installed" -eq 0 ]
 }
 
+# Refreshes the filepermissions in the ssh folder
 fix_ssh_permissions() {
     if [ -d "$HOME/.ssh" ]; then
         chmod 700 "$HOME/.ssh"
         chmod 600 "$HOME/.ssh"/*
-        chmod 644 "$HOME/.ssh"/*.pub
+        
+        if [ "$(\find $HOME/.ssh/ -type f \( -name "*.pub" \) | wc -l)" -gt 0 ]; then
+            chmod 644 "$HOME/.ssh"/*.pub
+        fi
+
         if [ -f "$HOME/.ssh/authorized_keys" ]; then
             chmod 644 "$HOME/.ssh/authorized_keys"
         fi
+        
         if [ -f "$HOME/.ssh/allowed_signers" ]; then
-        chmod 644 "$HOME/.ssh/allowed_signers"
+            chmod 644 "$HOME/.ssh/allowed_signers"
         fi
         
+    fi
+}
+
+# Gets an environment variable from the Windows environment.
+# FIXME:    Returns "invalid argument"
+# Takes:    $1 - The name of the environment variable
+# Returns:  1 if it doesn't exist
+# Stdout:   The value of the environment variable
+wslenv() {
+    if is_wsl; then
+        /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -Command "echo \$env:$1" | tr -d '\r'
+        return $?
+    else
+        return 1
     fi
 }
