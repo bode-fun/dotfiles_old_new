@@ -229,6 +229,11 @@ if is_linux; then
     add_to_path "$HOME/bin"
 fi
 
+if is_darwin; then
+    # Remember to upgrade this when upgrading python
+    add_to_path "/Users/janfooken/Library/Python/3.9/bin"
+fi
+
 ##################################################
 # Dotbare
 ##################################################
@@ -346,7 +351,6 @@ if is_installed "zplug"; then # damn zplug, the author didn't even archive the r
     #zplug "lib/completion", from:oh-my-zsh, defer:2 # This calls bashcompinit
     #zplug "mattmc3/zephyr"
     zplug "bode-fun/zephyr"
-    #zplug "bode-fun/pfetch-with-kitties", use:pfetch, as:command, rename-to:pfetch-with-kitties
 
     # Install plugins if there are plugins that have not been installed
     if ! zplug check --verbose; then
