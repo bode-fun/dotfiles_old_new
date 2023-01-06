@@ -228,7 +228,7 @@ fi
 # Variables
 #
 
-ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=8'
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=60'
 
 #
 # Keybinds
@@ -245,6 +245,10 @@ fi
 # zsh-syntax-highlighting
 
 # zsh-substring-search
+
+# emacs
+bindkey -M emacs '^P' history-substring-search-up
+bindkey -M emacs '^N' history-substring-search-down
 
 # vi
 bindkey -M vicmd "k" history-substring-search-up
