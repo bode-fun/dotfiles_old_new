@@ -19,9 +19,9 @@
 
 source "$HOME/.shell/utils.sh"
 
-# Wait for dependencies to be installed
-# This makes sure that the shell does not spawan multiple times
-# if the dependencies are not installed
+# Wait for dependencies to be installed 
+# This makes sure that the shell does not spawan multiple times 
+# if the dependencies are not installed 
 wait_for_dependencies_interactive() {
     if ! ensure_installed "git" "fzf" "curl"; then
         echo "Please install the above programs before continuing."
@@ -41,10 +41,23 @@ wait_for_dependencies_interactive() {
 # wait_for_dependencies_interactive || return 1
 
 # wait for dependencies to be installed before continuing
-if ! ensure_installed "git" "fzf" "curl" "awk"; then
-    echo "Please install the above programs before continuing."
-    return 1 #this will still spawn a zsh shell without the config
-fi
+(
+    start_shell=0
+    if ensure_installed "git" "fzf" "curl" "awk"; then
+        start_shell=1
+    fi
+
+    if is_wsl; then
+        if (! ensure_installed "wslpath" "keychain"); then # || (! suggest_installed "wslvar" "wslu")
+            start_shell=0
+        fi
+    fi
+
+    if [ "$start_shell" -eq 0 ]; then
+        echo "Please install the above programs before continuing."
+        return 1
+    fi
+) || return 1
 
 # Suggest basic programs
 suggest_multiple_installed "nvim" "brew" "fd" "bat" "gpg" "tldr"
@@ -53,11 +66,11 @@ suggest_multiple_installed "nvim" "brew" "fd" "bat" "gpg" "tldr"
 # Setup
 ##################################################
 
-if is_darwin && is_installed "brew"; then
+if is_installed "brew"; then
     # TODO: Remove this when changing to another zsh plugin manager
-    export ZPLUG_HOME=/opt/homebrew/opt/zplug
+    export ZPLUG_HOME="$HOMEBREW_PREFIX/opt/zplug"
     if [ -f "$ZPLUG_HOME/init.zsh" ]; then
-        # source /opt/homebrew/opt/antidote/share/antidote/antidote.zsh
+        # source "$HOMEBREW_PREFIX/opt/antidote/share/antidote/antidote.zsh"
         source $ZPLUG_HOME/init.zsh
     fi
 fi
@@ -85,26 +98,32 @@ bindkey -v
 fix_ssh_permissions
 
 # Start ssh-agent, supress output
-eval "$(ssh-agent | sed 's/^echo/#echo/')"
+eval "$(ssh-agent -s  | sed 's/^echo/#echo/')"
+
 
 # SSH Add on darwin
 # https://superuser.com/a/1721414
 if is_darwin; then
     # Load ssh keys into ssh-agent, supress output
     ssh-add --apple-load-keychain -q
+elif is_wsl; then
+    eval "$(keychain --quiet --eval --agents ssh)"
 fi
 
 if ! ssh-add -l >/dev/null 2>&1; then
-    echo "SSH keys not loaded, loading..."
-    if is_darwin; then
-        # Add keys
-        ssh-add --apple-use-keychain
-        # Refresh keychain
-        ssh-add --apple-load-keychain -q
-    else
-        ssh-add
-    fi
+    public_key_count="$(\find $HOME/.ssh/ -type f \( -name "*.pub" \) | wc -l)"
+    if [ "$public_key_count" -gt 0 ]; then
+        echo "SSH keys not added, adding..."
 
+        if is_darwin; then
+            # Add keys
+            ssh-add --apple-use-keychain
+            # Refresh keychain
+            ssh-add --apple-load-keychain -q
+        else
+            echo "Please run `ssh-add` to add your ssh keys"
+        fi
+    fi
 fi
 
 # If TERM is kitty, use kitty's ssh
@@ -133,12 +152,17 @@ fi
 # grep with ripgrep
 suggest_installed "rg" "ripgrep"
 
+if suggest_installed "ranger"; then
+    alias ranger=". ranger"
+fi
+
 ##################################################
 # Editor
 ##################################################
 
+# Maybe set an editor for ssh connections
+
 if is_installed "nvim"; then
-    alias nano="nvim"
     alias vi="nvim"
     alias vim="nvim"
     export EDITOR="nvim"
@@ -163,26 +187,54 @@ export FZF_DEFAULT_OPTS=" \
 # Environment
 ##################################################
 
+# If automatic langugagemanagement does not work
+
+# export LANG="${LANG:-de_DE.UTF-8}"
+# export LANGUAGE="${LANGUAGE:-de}"
+# export LC_ALL="${LC_ALL:-de_DE.UTF-8}"
+
 if is_darwin; then
+    # Always use the newest version of swift
     export TOOLCHAINS=swift
 fi
 
 # Uncomment the following line if the terminal does not display the colors correctly
 #export TERM="xterm-256color"
 
+# Used for signing with gpg (gpg-keys and ssh)
 export GPG_TTY=$(tty)
 
 ##################################################
 # Path
 ##################################################
 
-add_multiple_to_path "$HOME/.local/bin" "$HOME/.rd/bin"
+# Add homebrew to fpath
+fpath=("$HOMEBREW_PREFIX/share/zsh/site-functions" $fpath)
+
+
+add_multiple_to_path "$HOME/.local/bin" "$HOME/.rd/bin" "$HOME/sdk" "$HOME/go/bin"
+
+# Composer
+# PATH="$HOME/.config/composer/vendor/bin/:$PATH"
+
+if is_wsl; then
+    # Get the userdirectory on windows.
+    WINDOWS_USER_PATH="$(wslpath "$(wslenv USERPROFILE)")"
+    add_to_path "$WINDOWS_USER_PATH/AppData/Local/Programs/Microsoft VS Code/bin"
+fi
+
+add_to_path "$HOME/.deno/bin"
+
+if is_linux; then
+    add_to_path "$HOME/bin"
+fi
 
 ##################################################
 # Dotbare
 ##################################################
 
-suggest_multiple_installed "bat" "tree" "delta"
+suggest_multiple_installed "bat" "tree"
+suggest_installed "delta" "git-delta"
 
 if [ -f "$HOME/.dotbare/dotbare.plugin.zsh" ]; then
     source "$HOME/.dotbare/dotbare.plugin.zsh"
@@ -209,8 +261,13 @@ if ! is_installed "pfetch-with-kitties"; then
 fi
 
 if is_installed "pfetch-with-kitties"; then
-    echo ""
-    PF_INFO="ascii" PF_ASCII="Catppuccin" pfetch-with-kitties
+    if is_wsl; then
+        echo ""
+        HOSTNAME="wsl" PF_INFO="ascii title os uptime memory" PF_ASCII="Catppuccin" pfetch-with-kitties
+    else
+        echo ""
+        HOSTNAME="mac" PF_INFO="ascii title os uptime memory" PF_ASCII="Catppuccin" pfetch-with-kitties
+    fi
 fi
 
 ##################################################
@@ -287,8 +344,9 @@ if is_installed "zplug"; then # damn zplug, the author didn't even archive the r
     #zplug "lib/clipboard", from:oh-my-zsh
     # TODO: port this, because it calls bashcompinit :)
     #zplug "lib/completion", from:oh-my-zsh, defer:2 # This calls bashcompinit
-    zplug "mattmc3/zephyr"
-    zplug "bode-fun/pfetch-with-kitties", use:pfetch, as:command, rename-to:pfetch-with-kitties
+    #zplug "mattmc3/zephyr"
+    zplug "bode-fun/zephyr"
+    #zplug "bode-fun/pfetch-with-kitties", use:pfetch, as:command, rename-to:pfetch-with-kitties
 
     # Install plugins if there are plugins that have not been installed
     if ! zplug check --verbose; then
