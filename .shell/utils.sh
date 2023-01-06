@@ -115,6 +115,11 @@ fix_ssh_permissions() {
         if [ -f "$HOME/.ssh/allowed_signers" ]; then
         chmod 644 "$HOME/.ssh/allowed_signers"
         fi
-        
+    fi
+}
+
+refresh_brewfile() {
+    if is_installed "brew"; then
+        brew bundle dump --force
     fi
 }
