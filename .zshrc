@@ -18,6 +18,7 @@
 # esac
 
 source "$HOME/.shell/utils.sh"
+source "$HOME/.shell/plugins/sleep.sh"
 
 # Wait for dependencies to be installed 
 # This makes sure that the shell does not spawan multiple times 
@@ -149,6 +150,9 @@ if suggest_installed "exa"; then
     alias lld="lt -D"
 fi
 
+# To avvoid brew fomulars to accidentally link against a Pyenv-provided Python
+# alias brew='env PATH="${PATH//$(pyenv root)\/shims:/}" brew'
+
 # grep with ripgrep
 suggest_installed "rg" "ripgrep"
 
@@ -233,6 +237,17 @@ if is_darwin; then
     # Remember to upgrade this when upgrading python
     add_to_path "/Users/janfooken/Library/Python/3.9/bin"
 fi
+
+##################################################
+# Pyenv
+##################################################
+
+# export PYENV_ROOT="$HOME/.pyenv"
+# if is_installed "pyenv"; then
+#    add_to_path "$PYENV_ROOT/bin"
+#    eval "$(pyenv init -)"
+#    #eval "$(pyenv virtualenv-init -)"
+# fi
 
 ##################################################
 # Dotbare
