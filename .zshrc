@@ -99,8 +99,9 @@ bindkey -v
 fix_ssh_permissions
 
 # Start ssh-agent, supress output
-eval "$(ssh-agent -s  | sed 's/^echo/#echo/')"
-
+if ! is_wsl; then
+    eval "$(ssh-agent -s  | sed 's/^echo/#echo/')"
+fi
 
 # SSH Add on darwin
 # https://superuser.com/a/1721414
@@ -114,15 +115,15 @@ fi
 if ! ssh-add -l >/dev/null 2>&1; then
     public_key_count="$(\find $HOME/.ssh/ -type f \( -name "*.pub" \) | wc -l)"
     if [ "$public_key_count" -gt 0 ]; then
-        echo "SSH keys not added, adding..."
-
         if is_darwin; then
             # Add keys
             ssh-add --apple-use-keychain
             # Refresh keychain
             ssh-add --apple-load-keychain -q
+        #elif is_wsl; then
+        #    
         else
-            echo "Please run `ssh-add` to add your ssh keys"
+            echo "Please run 'ssh-add' to add your ssh keys"
         fi
     fi
 fi
